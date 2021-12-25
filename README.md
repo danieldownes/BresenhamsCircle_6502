@@ -1,7 +1,7 @@
 # BresenhamsCircle_6502
 ## Bresenhams Circle, implemented in BASIC and 6502 Assembly
 
-10 GOTO 300
+10 GOTO 240
 
 20 DEF PROCcirc(xc,yc,x,y)
 
@@ -47,10 +47,10 @@
 
 230 ENDPROC
 
-300 MODE1
+240 MODE1
 
-201 TIME=0
+250 TIME=0
 
-202 PROCBres(640, 512, 510, 4)
+260 PROCBres(640, 512, 510, 4)
 
-203 PRINT TIME
+270 PRINT TIME
