@@ -5,21 +5,21 @@
 
 20 DEF PROCcirc(xc,yc,x,y)
 
-30 VDU69,xc+x；yc+y；
+30 VDU69,xc+x,yc+y
 
-40 VDU69,xc-x；yc+y；
+40 VDU69,xc-x,yc+y
 
-50 VDU69,xc+x；yc-y；
+50 VDU69,xc+x,yc-y
 
-60 VDU69,xc-x；yc-y；
+60 VDU69,xc-x,yc-y
 
-70 VDU69,xc+y；yc+x；
+70 VDU69,xc+y,yc+x
 
-80 VDU69,xc-y；yc+x；
+80 VDU69,xc-y,yc+x
 
-90 VDU69,xc+y；yc-x；
+90 VDU69,xc+y,yc-x
 
-100 VDU69,xc-y；yc-x;
+100 VDU69,xc-y,yc-x
 
 110 ENDPROC
 
@@ -39,9 +39,9 @@
 
 190 x = x + s
 
-200 IF d > 0 THEN y = y - s : d = d + 4 * (x - y) + 10; ELSE d = d + 4 * x + 6
+200 IF d > 0 THEN y = y - s; d = d + 4 * (x - y) + 10 ELSE d=d+4*x+6
 
-210 PROCcircle(xc,yc,x,y)
+210 PROCcirc(xc,yc,x,y)
 
 220 UNTIL y < x
 
@@ -51,6 +51,5 @@
 
 250 TIME=0
 
-260 PROCBres(640, 512, 510, 4)
-
+260 PROCBres(640,512,510,4)  
 270 PRINT TIME
