@@ -5,21 +5,21 @@
 
 20 DEF PROCcirc(xc,yc,x,y)
 
-30 VDU69,xc+x,yc+y
+30 PLOT69,xc+x,yc+y
 
-40 VDU69,xc-x,yc+y
+40 PLOT69,xc-x,yc+y
 
-50 VDU69,xc+x,yc-y
+50 PLOT69,xc+x,yc-y
 
-60 VDU69,xc-x,yc-y
+60 PLOT69,xc-x,yc-y
 
-70 VDU69,xc+y,yc+x
+70 PLOT69,xc+y,yc+x
 
-80 VDU69,xc-y,yc+x
+80 PLOT69,xc-y,yc+x
 
-90 VDU69,xc+y,yc-x
+90 PLOT69,xc+y,yc-x
 
-100 VDU69,xc-y,yc-x
+100 PLOT69,xc-y,yc-x
 
 110 ENDPROC
 
@@ -51,5 +51,6 @@
 
 250 TIME=0
 
-260 PROCBres(640,512,510,4)  
+260 PROCBres(640,512,510,4)
+
 270 PRINT TIME
