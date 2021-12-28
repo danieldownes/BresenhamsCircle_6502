@@ -37,13 +37,13 @@
 
 180 REPEAT
 
-190 x = x + s
+190 x=x+s
 
-200 IF d > 0 THEN y = y - s; d = d + 4 * (x - y) + 10 ELSE d=d+4*x+6
+200 IF d>=0 THEN y=y-s:d=d+4*(x-y)+10 ELSE d=d+4*x+6
 
 210 PROCcirc(xc,yc,x,y)
 
-220 UNTIL y < x
+220 UNTIL y <= x
 
 230 ENDPROC
 
