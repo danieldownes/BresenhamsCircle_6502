@@ -8,6 +8,7 @@
 Tested on ElectrEm and ElkJS emulators.
 The included snapshot.uef file can also be loaded with these emulators.
 
+```basic
 10 GOTO 240
 
 20 DEF PROCcirc(xc,yc,x,y)
@@ -61,3 +62,4 @@ The included snapshot.uef file can also be loaded with these emulators.
 260 PROCBres(640,512,510,4)
 
 270 PRINT TIME
+```
