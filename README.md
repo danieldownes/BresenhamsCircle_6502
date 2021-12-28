@@ -1,5 +1,12 @@
-# BresenhamsCircle_6502
+# BresenhamsCircle 6502
 ## Bresenhams Circle, implemented in BASIC and 6502 Assembly
+
+### BASIC Version
+
+![](BASIC on ElectrEm.gif)
+
+Tested on ElectrEm and ElkJS emulators.
+The included snapshot.uef file can also be loaded with these emulators.
 
 10 GOTO 240
 
