@@ -3,7 +3,7 @@
 
 ### BASIC Version
 
-![](BASIC on ElectrEm.gif)
+![](./BASIC-on-ElectrEm.gif)
 
 Tested on ElectrEm and ElkJS emulators.
 The included snapshot.uef file can also be loaded with these emulators.
