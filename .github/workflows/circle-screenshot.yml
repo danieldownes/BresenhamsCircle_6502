@@ -130,6 +130,19 @@ jobs:
                       else:
                           raise ValueError(f"Unknown chunk kind: {kind}")
 
+          src = Path("circle.bas").read_text().replace("\r", "").rstrip()
+          payload = (src + "\nRUN\n").replace("\n", "\r").encode("ascii")
+
+          blocks = [
+              ("carrier", 1500),
+              ("data", DataBlock(b"CIRCLE", 0xFFFF3000, 0xFFFF3000, 0, True, payload).pack()),
+              ("carrier", 1500),
+          ]
+
+          write_uef(blocks, "circle.uef")
+          PY
+          test -f circle.uef
+
       - name: Create autoboot script
         run: |
           cat > circle.lua <<'EOF'
