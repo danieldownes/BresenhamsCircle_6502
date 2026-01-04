@@ -85,7 +85,7 @@ jobs:
       - name: Run emulator and capture screenshot
         run: |
           mkdir -p artifacts
-          xvfb-run -a ./mame64 electron -window -skip_gameinfo \
+          xvfb-run -a env SDL_AUDIODRIVER=dummy AUDIODEV=null ./mame64 electron -window -skip_gameinfo -sound none \
             -video soft \
             -autoboot_delay 1 \
             -autoboot_script circle.lua \
@@ -94,7 +94,8 @@ jobs:
             -snapname circle \
             -snapshot_directory artifacts \
             -rompath roms \
-            -hashpath mame-data/hash
+            -hashpath mame-data/hash || true
+          test -f artifacts/circle.png
 
       - name: Upload screenshot
         uses: actions/upload-artifact@v4
