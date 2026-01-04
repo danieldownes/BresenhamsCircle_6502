@@ -50,7 +50,7 @@ jobs:
           local frames = 0
           emu.register_frame_done(function()
             frames = frames + 1
-            if frames == 600 then
+            if frames == 6000 then
               manager.machine.video:snapshot()
             end
           end)
