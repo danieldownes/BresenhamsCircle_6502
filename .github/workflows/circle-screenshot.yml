@@ -63,7 +63,7 @@ jobs:
             -video soft \
             -autoboot_delay 1 \
             -autoboot_script circle.lua \
-            -seconds_to_run 60 \
+            -seconds_to_run 120 \
             -snapsize 1280x1024 \
             -snapname circle \
             -snapshot_directory artifacts \
