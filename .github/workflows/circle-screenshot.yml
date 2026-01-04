@@ -1,0 +1,104 @@
+name: Electron Circle Screenshot
+
+on:
+  push:
+  pull_request:
+
+env:
+  ELECTRON_ROM_URL: ${{ secrets.ELECTRON_ROM_URL }}
+  ELECTRON_ROM_BASE64: ${{ secrets.ELECTRON_ROM_BASE64 }}
+
+jobs:
+  render-circle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies and Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential python3 \
+            libsdl2-dev libsdl2-ttf-dev libfontconfig1-dev libpulse-dev \
+            libasound2-dev libxinerama-dev libxi-dev libxrandr-dev \
+            libgl1-mesa-dev libglu1-mesa-dev qtbase5-dev libqt5svg5-dev \
+            xvfb
+
+      - name: Build MAME with Acorn Electron driver
+        run: |
+          git clone https://github.com/mamedev/mame.git --depth=1
+          cd mame
+          make SUBTARGET=mess SOURCES=src/mame/acorn/electron.cpp TOOLS=0 STRIP_SYMBOLS=1 -j$(nproc)
+          cp mame64 ../mame64
+
+      - name: Prepare Electron ROMs
+        run: |
+          set -e
+          mkdir -p roms
+          if [ -n "$ELECTRON_ROM_BASE64" ]; then
+            echo "$ELECTRON_ROM_BASE64" | base64 -d > roms/electron.zip
+          fi
+          if [ -n "$ELECTRON_ROM_URL" ]; then
+            curl -L "$ELECTRON_ROM_URL" -o roms/electron.zip
+          fi
+          if [ ! -f roms/electron.zip ]; then
+            echo "Missing Electron ROM set (electron.zip). Provide ELECTRON_ROM_URL or ELECTRON_ROM_BASE64 secret."
+            exit 1
+          fi
+
+      - name: Create autoboot script
+        run: |
+          cat > circle.lua <<'EOF'
+          emu.keypost([[
+          10 GOTO 240
+          20 DEF PROCcirc(xc,yc,x,y)
+          30 PLOT69,xc+x,yc+y
+          40 PLOT69,xc-x,yc+y
+          50 PLOT69,xc+x,yc-y
+          60 PLOT69,xc-x,yc-y
+          70 PLOT69,xc+y,yc+x
+          80 PLOT69,xc-y,yc+x
+          90 PLOT69,xc+y,yc-x
+          100 PLOT69,xc-y,yc-x
+          110 ENDPROC
+          120 DEF PROCBres(xc,yc,r,s)
+          130 LOCAL x,y,d
+          140 x=0
+          150 y=r
+          160 d=3-2*r
+          170 PROCcirc(xc,yc,x,y)
+          180 REPEAT
+          190 x=x+s
+          200 IF d>=0 THEN y=y-s:d=d+4*(x-y)+10 ELSE d=d+4*x+6
+          210 PROCcirc(xc,yc,x,y)
+          220 UNTIL y <= x
+          230 ENDPROC
+          240 MODE1
+          250 TIME=0
+          260 PROCBres(640,512,510,4)
+          270 PRINT TIME
+          RUN
+          ]])
+          emu.wait(6)
+          manager:machine():video():snapshot()
+          emu.wait(1)
+          emu.exit()
+          EOF
+
+      - name: Run emulator and capture screenshot
+        run: |
+          mkdir -p artifacts
+          xvfb-run -a ./mame64 electron -window -skip_gameinfo \
+            -autoboot_delay 1 \
+            -autoboot_script circle.lua \
+            -seconds_to_run 10 \
+            -snapsize 1280x1024 \
+            -snapname circle \
+            -snapshot_directory artifacts \
+            -rompath roms
+
+      - name: Upload screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-circle
+          path: artifacts/
