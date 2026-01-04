@@ -133,9 +133,10 @@ jobs:
           src = Path("circle.bas").read_text().replace("\r", "").rstrip()
           payload = (src + "\nRUN\n").replace("\n", "\r").encode("ascii")
 
+          # For BASIC programs, use 0xFFFFFFFF for both load and exec addresses
           blocks = [
               ("carrier", 1500),
-              ("data", DataBlock(b"CIRCLE", 0xFFFF3000, 0xFFFF3000, 0, True, payload).pack()),
+              ("data", DataBlock(b"CIRCLE", 0xFFFFFFFF, 0xFFFFFFFF, 0, True, payload).pack()),
               ("carrier", 1500),
           ]
 
