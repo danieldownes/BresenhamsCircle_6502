@@ -18,6 +18,7 @@ jobs:
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libFLAC.so.12 /usr/lib/x86_64-linux-gnu/libFLAC.so.8
           sudo apt-get install -y libutf8proc3
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libutf8proc.so.3 /usr/lib/x86_64-linux-gnu/libutf8proc.so.2
+          sudo apt-get install -y libportaudio2 libportmidi0
           sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2
           sudo apt-get install -y libpugixml1v5t64 || sudo apt-get install -y libpugixml1v5
           sudo apt-get install -y \
