@@ -40,13 +40,73 @@ jobs:
           mkdir -p roms
           cp electron.zip roms/electron.zip
 
+      - name: Build UEF tape from BASIC source
+        run: |
+          python3 - <<'PY'
+          import struct
+          from pathlib import Path
+
+          def crc(data: bytes) -> int:
+            poly = 0x1021
+            reg = 0xFFFF
+            for b in data:
+              reg ^= b << 8
+              for _ in range(8):
+                if reg & 0x8000:
+                  reg = ((reg << 1) & 0xFFFF) ^ poly
+                else:
+                  reg = (reg << 1) & 0xFFFF
+            return reg
+
+          class DataBlock:
+            def __init__(self, name: bytes, load: int, exec_addr: int, block_nr: int, is_last: bool, data: bytes):
+              self.name = name
+              self.load = load
+              self.exec_addr = exec_addr
+              self.block_nr = block_nr
+              self.is_last = is_last
+              self.data = data
+
+            def pack(self) -> bytes:
+              header = (
+                self.name + b"\0" +
+                struct.pack("<IIHHBI", self.load, self.exec_addr, self.block_nr, len(self.data),
+                            0x80 if self.is_last else 0, 0)
+              )
+              header_crc = crc(header)
+              data_crc = crc(self.data)
+              return b"*"+ header + struct.pack(">H", header_crc) + self.data + struct.pack(">H", data_crc)
+
+          def write_uef(chunks, path: str):
+            with open(path, "wb") as f:
+              f.write(b"UEF File!\0")
+              f.write(struct.pack("<H", 0x0001))
+              for kind, payload in chunks:
+                if kind == "carrier":
+                  f.write(struct.pack("<HIH", 0x110, 2, payload))
+                elif kind == "data":
+                  f.write(struct.pack("<HI", 0x100, len(payload)))
+                  f.write(payload)
+                elif kind == "silence":
+                  f.write(struct.pack("<HIf", 0x116, 4, payload))
+                else:
+                  raise ValueError(kind)
+
+          src = Path("circle.bas").read_text().replace("\r", "").rstrip()
+          payload = (src + "\nRUN\n").replace("\n", "\r").encode("ascii")
+
+          blocks = [
+            ("carrier", 1500),
+            ("data", DataBlock(b"CIRCLE", 0xFFFF3000, 0xFFFF3000, 0, True, payload).pack()),
+            ("carrier", 1500),
+          ]
+          write_uef(blocks, "circle.uef")
+          PY
+
       - name: Create autoboot script
         run: |
           cat > circle.lua <<'EOF'
-          local f = assert(io.open("circle.bas", "r"))
-          local program = f:read("*a")
-          f:close()
-          emu.keypost(program .. "\nRUN\n")
+          emu.keypost("*EXEC CIRCLE\nRUN\n")
           local frames = 0
           emu.register_frame_done(function()
             frames = frames + 1
@@ -67,6 +127,7 @@ jobs:
             -snapsize 1280x1024 \
             -snapname circle \
             -snapshot_directory artifacts \
+            -cassette circle.uef \
             -rompath roms \
             -hashpath mame-data/hash || true
           test -f artifacts/circle.png
