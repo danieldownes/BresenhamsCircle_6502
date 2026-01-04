@@ -4,10 +4,6 @@ on:
   push:
   pull_request:
 
-env:
-  ELECTRON_ROM_URL: ${{ secrets.ELECTRON_ROM_URL }}
-  ELECTRON_ROM_BASE64: ${{ secrets.ELECTRON_ROM_BASE64 }}
-
 jobs:
   render-circle:
     runs-on: ubuntu-latest
@@ -31,20 +27,10 @@ jobs:
           make SUBTARGET=mess SOURCES=src/mame/acorn/electron.cpp TOOLS=0 STRIP_SYMBOLS=1 -j$(nproc)
           cp mame64 ../mame64
 
-      - name: Prepare Electron ROMs
+      - name: Stage Electron ROMs
         run: |
-          set -e
           mkdir -p roms
-          if [ -n "$ELECTRON_ROM_BASE64" ]; then
-            echo "$ELECTRON_ROM_BASE64" | base64 -d > roms/electron.zip
-          fi
-          if [ -n "$ELECTRON_ROM_URL" ]; then
-            curl -L "$ELECTRON_ROM_URL" -o roms/electron.zip
-          fi
-          if [ ! -f roms/electron.zip ]; then
-            echo "Missing Electron ROM set (electron.zip). Provide ELECTRON_ROM_URL or ELECTRON_ROM_BASE64 secret."
-            exit 1
-          fi
+          cp electron.zip roms/electron.zip
 
       - name: Create autoboot script
         run: |
