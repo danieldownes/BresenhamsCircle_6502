@@ -107,7 +107,7 @@ jobs:
       - name: Create autoboot script
         run: |
           cat > circle.lua <<'EOF'
-          emu.keypost("*TAPE\nCHAIN \"\"\n")
+          emu.keypost("*TAPE\n*EXEC CIRCLE\n")
           local frames = 0
           emu.register_frame_done(function()
             frames = frames + 1
