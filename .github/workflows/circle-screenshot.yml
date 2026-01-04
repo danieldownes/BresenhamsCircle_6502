@@ -68,16 +68,20 @@ jobs:
           270 PRINT TIME
           RUN
           ]])
-          emu.wait(6)
-          manager:machine():video():snapshot()
-          emu.wait(1)
-          emu.exit()
+          local frames = 0
+          emu.register_frame_done(function()
+            frames = frames + 1
+            if frames == 360 then
+              manager.machine.video:snapshot()
+            end
+          end)
           EOF
 
       - name: Run emulator and capture screenshot
         run: |
           mkdir -p artifacts
           xvfb-run -a ./mame64 electron -window -skip_gameinfo \
+            -video soft \
             -autoboot_delay 1 \
             -autoboot_script circle.lua \
             -seconds_to_run 10 \
