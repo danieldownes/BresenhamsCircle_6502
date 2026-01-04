@@ -40,118 +40,17 @@ jobs:
           mkdir -p roms
           cp electron.zip roms/electron.zip
 
-      - name: Build UEF tape from BASIC source
-        run: |
-          python3 - <<'PY'
-          import struct
-          from pathlib import Path
-
-          def crc(data: bytes) -> int:
-              """Calculate CRC-16 XMODEM checksum"""
-              poly = 0x1021
-              reg = 0x0000  # Should initialize to 0x0000, not 0xFFFF
-              for b in data:
-                  reg ^= b << 8
-                  for _ in range(8):
-                      if reg & 0x8000:
-                          reg = ((reg << 1) & 0xFFFF) ^ poly
-                      else:
-                          reg = (reg << 1) & 0xFFFF
-              return reg
-
-          class DataBlock:
-              def __init__(self, name: bytes, load: int, exec_addr: int, block_nr: int, is_last: bool, data: bytes):
-                  self.name = name
-                  self.load = load
-                  self.exec_addr = exec_addr
-                  self.block_nr = block_nr
-                  self.is_last = is_last
-                  self.data = data
-
-              def pack(self) -> bytes:
-                  # Block flag: bit 7 set if last block, bit 6 set if empty
-                  block_flag = 0x80 if self.is_last else 0x00
-                  if len(self.data) == 0:
-                      block_flag |= 0x40
-                  
-                  # Header structure per BBC/Electron spec:
-                  # - File name (1-10 chars)
-                  # - NULL terminator (0x00)
-                  # - Load address (4 bytes, little-endian)
-                  # - Exec address (4 bytes, little-endian)
-                  # - Block number (2 bytes, little-endian)
-                  # - Block length (2 bytes, little-endian)
-                  # - Block flag (1 byte)
-                  # - Next file address (4 bytes, little-endian, set to 0 for cassette)
-                  header = (
-                      self.name +
-                      b"\x00" +  # NULL terminator
-                      struct.pack("<I", self.load) +      # Load address
-                      struct.pack("<I", self.exec_addr) + # Exec address
-                      struct.pack("<H", self.block_nr) +  # Block number
-                      struct.pack("<H", len(self.data)) + # Block length
-                      struct.pack("B", block_flag) +      # Block flag
-                      struct.pack("<I", 0)                # Next file address (0 for cassette)
-                  )
-                  
-                  header_crc = crc(header)
-                  
-                  # Sync byte + header + CRC (big-endian)
-                  result = b"*" + header + struct.pack(">H", header_crc)
-                  
-                  # Add data and data CRC if data exists
-                  if len(self.data) > 0:
-                      data_crc = crc(self.data)
-                      result += self.data + struct.pack(">H", data_crc)
-                  
-                  return result
-
-          def write_uef(chunks, path: str):
-              """Write UEF file with proper header and chunks"""
-              with open(path, "wb") as f:
-                  # UEF header: "UEF File!" + version (minor, major)
-                  f.write(b"UEF File!\x00")
-                  # Version 0.10 (minor=10, major=0)
-                  f.write(struct.pack("<BB", 10, 0))
-                  
-                  for kind, payload in chunks:
-                      if kind == "carrier":
-                          # Chunk 0x0110: carrier tone (cycle count in 2 bytes)
-                          f.write(struct.pack("<HI", 0x0110, 2))
-                          f.write(struct.pack("<H", payload))
-                      elif kind == "data":
-                          # Chunk 0x0100: implicit start/stop bit data
-                          f.write(struct.pack("<HI", 0x0100, len(payload)))
-                          f.write(payload)
-                      elif kind == "silence":
-                          # Chunk 0x0116: floating point gap (in seconds)
-                          f.write(struct.pack("<HI", 0x0116, 4))
-                          f.write(struct.pack("<f", payload))
-                      else:
-                          raise ValueError(f"Unknown chunk kind: {kind}")
-
-          src = Path("circle.bas").read_text().replace("\r", "").rstrip()
-          payload = (src + "\nRUN\n").replace("\n", "\r").encode("ascii")
-
-          # For BASIC programs, use 0xFFFFFFFF for both load and exec addresses
-          blocks = [
-              ("carrier", 1500),
-              ("data", DataBlock(b"CIRCLE", 0xFFFFFFFF, 0xFFFFFFFF, 0, True, payload).pack()),
-              ("carrier", 1500),
-          ]
-
-          write_uef(blocks, "circle.uef")
-          PY
-          test -f circle.uef
-
       - name: Create autoboot script
         run: |
           cat > circle.lua <<'EOF'
-          emu.keypost("*TAPE\nCHAIN \"\"\n")
+          local f = assert(io.open("circle.bas", "r"))
+          local program = f:read("*a")
+          f:close()
+          emu.keypost(program .. "\nRUN\n")
           local frames = 0
           emu.register_frame_done(function()
             frames = frames + 1
-            if frames == 4000 then
+            if frames == 600 then
               manager.machine.video:snapshot()
             end
           end)
@@ -168,7 +67,6 @@ jobs:
             -snapsize 1280x1024 \
             -snapname circle \
             -snapshot_directory artifacts \
-            -cassette circle.uef \
             -rompath roms \
             -hashpath mame-data/hash || true
           test -f artifacts/circle.png
