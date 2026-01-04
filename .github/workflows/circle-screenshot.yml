@@ -15,6 +15,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2
+          sudo apt-get install -y libpugixml1v5t64 || sudo apt-get install -y libpugixml1v5
           sudo apt-get install -y \
             libsdl2-2.0-0 libsdl2-ttf-2.0-0 libfontconfig1 libpulse0 \
             libxinerama1 libxi6 libxrandr2 \
