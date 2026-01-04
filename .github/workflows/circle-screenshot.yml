@@ -102,11 +102,12 @@ jobs:
           ]
           write_uef(blocks, "circle.uef")
           PY
+          test -f circle.uef
 
       - name: Create autoboot script
         run: |
           cat > circle.lua <<'EOF'
-          emu.keypost("*TAPE\n*EXEC CIRCLE\nRUN\n")
+          emu.keypost("*TAPE\nCHAIN \"\"\n")
           local frames = 0
           emu.register_frame_done(function()
             frames = frames + 1
