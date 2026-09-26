@@ -22,9 +22,9 @@ The versions that use lookup tables pause for a few seconds before drawing while
 
 ### Step through the code
 
-[Electron Circle Stepper](https://claude.ai/artifact/V8VfoFEoY4u8N1nRtmPrLs) is an interactive page that runs the machine code from `circle_asm_mode4.bas` in a small 6502 emulator, one instruction at a time. It explains each instruction in plain English, groups the code into blocks that say what each part does, and shows the registers, the zero page variables, how each pixel's screen address is built, and the MODE 4 screen as the circle appears. You can step forwards and backwards, jump to the next pixel or the next loop, or run it at different speeds.
+[Electron Circle Stepper](https://danieldownes.github.io/BresenhamsCircle_6502/docs/electron-circle-stepper.html) is an interactive page that runs the machine code from `circle_asm_mode4.bas` in a small 6502 emulator, one instruction at a time. It explains each instruction in plain English, groups the code into blocks that say what each part does, and shows the registers, the zero page variables, how each pixel's screen address is built, and the MODE 4 screen as the circle appears. You can step forwards and backwards, jump to the next pixel or the next loop, or run it at different speeds.
 
-A copy of the page is in this repository at [docs/electron-circle-stepper.html](./docs/electron-circle-stepper.html). Download it and open it in a browser.
+**[Open the Electron Circle Stepper](https://danieldownes.github.io/BresenhamsCircle_6502/docs/electron-circle-stepper.html)**. It is a single HTML file, [docs/electron-circle-stepper.html](./docs/electron-circle-stepper.html), served by GitHub Pages, so it also works when downloaded and opened locally.
 
 
 ### BASIC Version
